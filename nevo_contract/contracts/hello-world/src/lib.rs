@@ -138,6 +138,8 @@ pub enum ContractError {
     InvalidPoolTarget = 17,
     /// Pool application deadline is zero or already in the past.
     InvalidPoolDeadline = 18,
+    /// Donation attempted at or after the pool's application deadline.
+    CampaignExpired = 19,
 }
 
 // Helper functions for timestamp/deadline edge-case tests
@@ -558,6 +560,10 @@ impl Contract {
         // Pool state validation
         if pool.state != PoolState::Active {
             env.panic_with_error(ContractError::InvalidPoolState);
+        }
+
+        if env.ledger().timestamp() >= pool.application_deadline {
+            env.panic_with_error(ContractError::CampaignExpired);
         }
 
         let new_collected = pool.collected + amount;
@@ -1486,6 +1492,10 @@ impl Contract {
         // Pool state validation
         if pool.state != PoolState::Active {
             env.panic_with_error(ContractError::InvalidPoolState);
+        }
+
+        if env.ledger().timestamp() >= pool.application_deadline {
+            env.panic_with_error(ContractError::CampaignExpired);
         }
 
         if amount <= 0 {
