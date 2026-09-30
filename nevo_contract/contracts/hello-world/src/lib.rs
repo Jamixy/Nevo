@@ -20,8 +20,8 @@
 #![cfg_attr(not(test), no_std)]
 
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, token, Address, BytesN,
-    Env, String, Symbol, Vec,
+    contract, contracterror, contractimpl, contracttype, symbol_short, token, Address, BytesN, Env,
+    String, Symbol, Vec,
 };
 
 // Storage key constants
@@ -915,12 +915,18 @@ impl Contract {
             panic!("Milestone total must equal pool goal");
         }
 
-        let milestones_key = (Symbol::new(&env, MILESTONES_PREFIX), pool_id, student.clone());
+        let milestones_key = (
+            Symbol::new(&env, MILESTONES_PREFIX),
+            pool_id,
+            student.clone(),
+        );
         env.storage().persistent().set(&milestones_key, &milestones);
 
         // Issue #954: emit milestones-set event
-        env.events()
-            .publish((MILESTONES_SET, pool_id), (student.clone(), milestones.len()));
+        env.events().publish(
+            (MILESTONES_SET, pool_id),
+            (student.clone(), milestones.len()),
+        );
     }
 
     /// Get student milestones for a pool.
@@ -1274,8 +1280,7 @@ impl Contract {
         env.storage().persistent().set(&unclaimed_fees_key, &0i128);
 
         // Issue #954: emit fees-claimed event
-        env.events()
-            .publish((FEES_CLAIMED, admin.clone()), (fees,));
+        env.events().publish((FEES_CLAIMED, admin.clone()), (fees,));
 
         fees
     }
@@ -1325,10 +1330,8 @@ impl Contract {
         // Issue #954: use shared FEE_UPDATED constant instead of inline Symbol::new
         env.events().publish((FEE_UPDATED,), fee);
         // Emit event: topics = ["creation_fee_updated"], data = new fee value
-        env.events().publish(
-            (Symbol::new(&env, "creation_fee_updated"),),
-            fee,
-        );
+        env.events()
+            .publish((Symbol::new(&env, "creation_fee_updated"),), fee);
     }
 
     /// Get the current pool creation fee.
@@ -1423,11 +1426,7 @@ impl Contract {
         }
 
         let token_key = (Symbol::new(&env, POOL_TOKEN_PREFIX), pool_id);
-        if let Some(expected_token) = env
-            .storage()
-            .persistent()
-            .get::<_, Address>(&token_key)
-        {
+        if let Some(expected_token) = env.storage().persistent().get::<_, Address>(&token_key) {
             if expected_token != token_address {
                 panic!("TokenTransferFailed");
             }
@@ -1494,11 +1493,7 @@ impl Contract {
         }
 
         let token_key = (Symbol::new(&env, POOL_TOKEN_PREFIX), pool_id);
-        if let Some(expected_token) = env
-            .storage()
-            .persistent()
-            .get::<_, Address>(&token_key)
-        {
+        if let Some(expected_token) = env.storage().persistent().get::<_, Address>(&token_key) {
             if expected_token != token_address {
                 panic!("TokenTransferFailed");
             }
@@ -1727,14 +1722,7 @@ impl Contract {
             env.events().publish((FEE_PAID,), (creator.clone(), fee));
         }
 
-        Self::create_pool(
-            env,
-            creator,
-            title,
-            description,
-            goal,
-            application_deadline,
-        )
+        Self::create_pool(env, creator, title, description, goal, application_deadline)
     }
 
     /// Alias for `create_pool_with_fee`.
@@ -1788,11 +1776,10 @@ impl Contract {
         env.storage().persistent().set(&token_key, &token);
 
         // Emit events
-        env.events().publish((CROWDFUNDING_TOKEN_SET,), token.clone());
-        env.events().publish(
-            (Symbol::new(&env, "crowdfunding_token_set"), admin),
-            token,
-        );
+        env.events()
+            .publish((CROWDFUNDING_TOKEN_SET,), token.clone());
+        env.events()
+            .publish((Symbol::new(&env, "crowdfunding_token_set"), admin), token);
     }
 
     /// Get the currently configured global crowdfunding token.
@@ -1829,17 +1816,12 @@ impl Contract {
 }
 
 mod test;
-mod test_auth_bypass;
-mod test_issues;
-mod test_numeric_overflow;
-mod test_register_school;
+mod test_campaign_lifecycle;
 mod test_contract_initialization;
+mod test_issue_1287_pool_multisig;
+mod test_issue_1323_docs;
+mod test_issues;
 mod test_pool_creation;
 mod test_pool_retrieval;
-mod test_campaign_lifecycle;
+mod test_register_school;
 mod test_withdraw;
-mod test_issue_1108_refund_grace_period;
-mod test_issue_1109_emergency_grace_period;
-mod test_issue_1287_pool_multisig;
-mod test_concurrent_pools;
-mod test_concurrent_campaigns;
